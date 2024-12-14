@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
+    <link rel="stylesheet" href="/static/css/style.css"> <!-- Link to your CSS file -->
+</head>
+<body>
+    <div id="app">
+        <header>
+            <h1>Admin Panel</h1>
+            <nav>
+                <ul>
+                    <li><a href="/">Home</a></li>
+                    <li><a href="/login">Login</a></li>
+                    <li><a href="/users">Users</a></li>
+                </ul>
+            </nav>
+        </header>
+        <main>
+            {% if page == "home" %}
+                <h2>Welcome to the Admin Panel Dashboard</h2>
+                <p>This is the home page.</p>
+            {% elif page == "login" %}
+                <h2>Login</h2>
+                <form action="/api/token" method="post">
+                    <label for="username">Email:</label>
+                    <input type="email" id="username" name="username" required>
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" name="password" required>
+                    <button type="submit">Login</button>
+                </form>
+            {% elif page == "users" %}
+                <h2>User Management</h2>
+                <table id="user-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Is Active</th>
+                            <th>Is Admin</th>
+                        </tr>
+                    </thead>
+                    <tbody id="user-table-body">
+                        <!-- User data will be inserted here dynamically -->
+                    </tbody>
+                </table>
+            {% endif %}
+        </main>
+        <footer>
+            <p>&copy; 2023 Admin Panel</p>
+        </footer>
+    </div>
+    <script src="/static/js/script.js"></script> <!-- Link to your JS file -->
+</body>
+</html>

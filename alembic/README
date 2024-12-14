@@ -1,0 +1,16 @@
+# Admin Panel
+
+This is an admin panel for managing users and authentication, built with FastAPI.
+
+## Features
+
+- User registration and authentication
+- Role-based access control (RBAC)
+- User management (create, read, update, delete)
+- OAuth2 password flow for authentication
+- Swagger UI for API documentation and testing
+
+## Requirements
+
+- Python 3.8+
+- PostgreSQL

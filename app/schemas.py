@@ -7,6 +7,7 @@ class UserBase(BaseModel):
     email: EmailStr
     is_active: bool = True
     is_admin: bool = False
+    role: str = "user"  # Add role field
 
 # Schema for creating a new user, includes password
 class UserCreate(UserBase):

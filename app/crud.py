@@ -47,6 +47,7 @@ def create_user(db: Session, user: schemas.UserCreate):
         hashed_password=hashed_password,
         is_active=user.is_active,
         is_admin=user.is_admin,
+        role=user.role
     )
     db.add(db_user)  # Add the user to the session.
     db.commit()  # Commit the transaction.
@@ -73,6 +74,7 @@ def update_user(db: Session, user_id: int, user_update: schemas.UserUpdate):
             db_user.hashed_password = get_password_hash(user_update.password)
         db_user.is_active = user_update.is_active
         db_user.is_admin = user_update.is_admin
+        db_user.role = user_update.role
         db.commit()
         db.refresh(db_user)
     return db_user

@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr
-from typing import Optional
+from typing import Optional, List
 
 # Base user schema that will be inherited by other schemas
 class UserBase(BaseModel):
@@ -32,3 +32,66 @@ class Token(BaseModel):
 # Schema for the token data (used for extracting info from the token payload)
 class TokenData(BaseModel):
     email: Optional[str] = None  # Use Optional for nullable fields
+
+class MetaDataItemBase(BaseModel):
+    key: str
+    value: str
+
+class MetaDataItemCreate(MetaDataItemBase):
+    pass
+
+class MetaDataItemUpdate(MetaDataItemBase):
+    pass
+
+class MetaDataItemResponse(MetaDataItemBase):
+    id: int
+
+    class Config:
+        orm_mode = True
+
+class ContentBase(BaseModel):
+    title: str
+    body: str
+
+class ContentCreate(ContentBase):
+    pass
+
+class ContentUpdate(ContentBase):
+    pass
+
+class ContentResponse(ContentBase):
+    id: int
+
+    class Config:
+        orm_mode = True
+
+class CategoryBase(BaseModel):
+    name: str
+    description: Optional[str] = None
+
+class CategoryCreate(CategoryBase):
+    pass
+
+class CategoryUpdate(CategoryBase):
+    pass
+
+class CategoryResponse(CategoryBase):
+    id: int
+
+    class Config:
+        orm_mode = True
+
+class TagBase(BaseModel):
+    name: str
+
+class TagCreate(TagBase):
+    pass
+
+class TagUpdate(TagBase):
+    pass
+
+class TagResponse(TagBase):
+    id: int
+
+    class Config:
+        orm_mode = True

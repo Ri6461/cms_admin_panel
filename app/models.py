@@ -3,7 +3,24 @@ from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 from app.database import Base
 
+class Role(Base):
+    """
+    Role model representing a user role in the system.
+    """
+    __tablename__ = "roles"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, unique=True, index=True)
+    description = Column(Text)
+    users = relationship("User", back_populates="role")
+
+    def __repr__(self):
+        return f"<Role(id={self.id}, name={self.name}, description={self.description})>"
+
 class User(Base):
+    """
+    User model representing a user in the system.
+    """
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -12,15 +29,19 @@ class User(Base):
     hashed_password = Column(String)
     is_active = Column(Boolean, default=True)
     is_admin = Column(Boolean, default=False)
-    role = Column(String, default="user")
+    role_id = Column(Integer, ForeignKey('roles.id'))
+    role = relationship("Role", back_populates="users")
 
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
 
     def __repr__(self):
-        return f"<User(id={self.id}, name={self.name}, email={self.email}, role={self.role}, is_active={self.is_active}, is_admin={self.is_admin})>"
+        return f"<User(id={self.id}, name={self.name}, email={self.email}, role={self.role.name}, is_active={self.is_active}, is_admin={self.is_admin})>"
 
 class MetaDataItem(Base):
+    """
+    MetaDataItem model representing metadata associated with content.
+    """
     __tablename__ = "metadata_items"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -35,6 +56,9 @@ class MetaDataItem(Base):
         return f"<MetaDataItem(id={self.id}, key={self.key}, value={self.value})>"
 
 class Content(Base):
+    """
+    Content model representing the main content in the system.
+    """
     __tablename__ = "content"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -50,6 +74,9 @@ class Content(Base):
         return f"<Content(id={self.id}, title={self.title}, body={self.body}, category_id={self.category_id})>"
 
 class Category(Base):
+    """
+    Category model representing categories for content.
+    """
     __tablename__ = "categories"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -62,6 +89,9 @@ class Category(Base):
         return f"<Category(id={self.id}, name={self.name}, description={self.description})>"
 
 class Tag(Base):
+    """
+    Tag model representing tags associated with content.
+    """
     __tablename__ = "tags"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -74,6 +104,9 @@ class Tag(Base):
         return f"<Tag(id={self.id}, name={self.name})>"
 
 class ContentTags(Base):
+    """
+    Association table for many-to-many relationship between Content and Tag.
+    """
     __tablename__ = "content_tags"
 
     content_id = Column(Integer, ForeignKey('content.id'), primary_key=True)

@@ -1,12 +1,12 @@
 from datetime import datetime, timedelta
 from typing import Optional
 from jose import JWTError, jwt
-from passlib.context import CryptContext
 from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from app import crud, models, schemas
 from app.database import get_db
+from app.utils import get_password_hash, verify_password
 import os
 from dotenv import load_dotenv
 
@@ -15,24 +15,9 @@ load_dotenv()
 
 SECRET_KEY = os.getenv("APP_SECRET_KEY")
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+ACCESS_TOKEN_EXPIRE_MINUTES = 100
 
-pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/token")
-
-def verify_password(plain_password, hashed_password):
-    return pwd_context.verify(plain_password, hashed_password)
-
-def get_password_hash(password):
-    return pwd_context.hash(password)
-
-def authenticate_user(db: Session, email: str, password: str):
-    user = crud.get_user_by_email(db, email)
-    if not user:
-        return False
-    if not verify_password(password, user.hashed_password):
-        return False
-    return user
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/token")
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
@@ -79,7 +64,7 @@ def get_current_active_user_with_role(role: str):
     def role_checker(current_user: models.User = Depends(get_current_user)):
         if not current_user.is_active:
             raise HTTPException(status_code=400, detail="Inactive user")
-        if current_user.role != role:
+        if current_user.role.name != role:
             raise HTTPException(status_code=403, detail="You don't have permissions to access this resource")
         return current_user
     return role_checker

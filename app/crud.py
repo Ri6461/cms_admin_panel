@@ -13,14 +13,21 @@ def authenticate_user(db: Session, email: str, password: str):
         return False
     return user
 
+def get_user(db: Session, user_id: int):
+    return db.query(models.User).filter(models.User.id == user_id).first()
+
 def get_users(db: Session, skip: int = 0, limit: int = 10):
     return db.query(models.User).offset(skip).limit(limit).all()
 
 def create_user(db: Session, user: schemas.UserCreate):
     hashed_password = get_password_hash(user.password)
     db_user = models.User(
-        name=user.name, email=user.email, hashed_password=hashed_password,
-        is_active=user.is_active, is_admin=user.is_admin, role_id=user.role_id
+        name=user.name,
+        email=user.email,
+        hashed_password=hashed_password,
+        is_active=user.is_active,
+        is_admin=user.is_admin,
+        role_id=user.role_id
     )
     db.add(db_user)
     db.commit()
@@ -63,6 +70,8 @@ def update_role(db: Session, role_id: int, role_update: schemas.RoleUpdate):
     if db_role:
         db_role.name = role_update.name
         db_role.description = role_update.description
+        db_role.permissions = role_update.permissions
+        db_role.parent_id = role_update.parent_id
         db.commit()
         db.refresh(db_role)
     return db_role
@@ -87,7 +96,6 @@ def create_content(db: Session, content: schemas.ContentCreate):
 def get_content(db: Session, skip: int = 0, limit: int = 10):
     return db.query(models.Content).offset(skip).limit(limit).all()
 
-
 def update_content(db: Session, content_id: int, content_update: schemas.ContentUpdate):
     db_content = db.query(models.Content).filter(models.Content.id == content_id).first()
     if db_content:
@@ -105,15 +113,15 @@ def delete_content(db: Session, content_id: int):
         db.commit()
     return db_content
 
+def get_tags(db: Session, skip: int = 0, limit: int = 10):
+    return db.query(models.Tag).offset(skip).limit(limit).all()
+
 def create_tag(db: Session, tag: schemas.TagCreate):
     db_tag = models.Tag(**tag.dict())
     db.add(db_tag)
     db.commit()
     db.refresh(db_tag)
     return db_tag
-
-def get_tag(db: Session, skip: int = 0, limit: int = 10):
-    return db.query(models.Tag).offset(skip).limit(limit).all()
 
 def update_tag(db: Session, tag_id: int, tag_update: schemas.TagUpdate):
     db_tag = db.query(models.Tag).filter(models.Tag.id == tag_id).first()
@@ -156,5 +164,3 @@ def delete_metadata_item(db: Session, metadata_item_id: int):
         db.delete(db_metadata_item)
         db.commit()
     return db_metadata_item
-
-

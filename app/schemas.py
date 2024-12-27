@@ -1,9 +1,11 @@
 from pydantic import BaseModel, EmailStr
-from typing import Optional, List
+from typing import Optional, List, Dict
 
 class RoleBase(BaseModel):
     name: str
     description: Optional[str] = None
+    permissions: Optional[Dict[str, List[str]]] = {}  # Permissions as a dictionary
+    parent_id: Optional[int] = None  # Parent role ID
 
 class RoleCreate(RoleBase):
     pass
@@ -11,17 +13,21 @@ class RoleCreate(RoleBase):
 class RoleUpdate(RoleBase):
     pass
 
-class RoleResponse(RoleBase):
+class RoleResponse(BaseModel):
     id: int
+    name: str
+    description: Optional[str] = None
+    permissions: Optional[dict] = None
+    parent_id: Optional[int] = None
 
     class Config:
         orm_mode = True
+        arbitrary_types_allowed = True
 
 class UserBase(BaseModel):
     name: str
     email: EmailStr
     is_active: bool = True
-    is_admin: bool = False
     role_id: int
 
 class UserCreate(UserBase):
@@ -30,8 +36,12 @@ class UserCreate(UserBase):
 class UserUpdate(UserBase):
     password: Optional[str] = None
 
-class UserResponse(UserBase):
+class UserResponse(BaseModel):
     id: int
+    name: str
+    email: str
+    is_active: bool
+    role_id: int
     role: RoleResponse
 
     class Config:
@@ -63,6 +73,7 @@ class MetaDataItemResponse(MetaDataItemBase):
 class ContentBase(BaseModel):
     title: str
     body: str
+    published: Optional[bool] = None  
 
 class ContentCreate(ContentBase):
     pass

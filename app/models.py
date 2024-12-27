@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Text
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Text, JSON
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 from app.database import Base
@@ -11,7 +11,10 @@ class Role(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, unique=True, index=True)
-    description = Column(Text)
+    description = Column(String)
+    permissions = Column(JSON)
+    parent_id = Column(Integer, ForeignKey('roles.id'), nullable=True)
+    parent = relationship("Role", remote_side=[id], backref="children")
     users = relationship("User", back_populates="role")
 
     def __repr__(self):
@@ -28,7 +31,7 @@ class User(Base):
     email = Column(String, unique=True, index=True)
     hashed_password = Column(String)
     is_active = Column(Boolean, default=True)
-    is_admin = Column(Boolean, default=False)
+
     role_id = Column(Integer, ForeignKey('roles.id'))
     role = relationship("Role", back_populates="users")
 
@@ -36,7 +39,7 @@ class User(Base):
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
 
     def __repr__(self):
-        return f"<User(id={self.id}, name={self.name}, email={self.email}, role={self.role.name}, is_active={self.is_active}, is_admin={self.is_admin})>"
+        return f"<User(id={self.id}, name={self.name}, email={self.email}, role={self.role.name}, is_active={self.is_active})>"
 
 class MetaDataItem(Base):
     """
@@ -47,8 +50,8 @@ class MetaDataItem(Base):
     id = Column(Integer, primary_key=True, index=True)
     key = Column(String, index=True)
     value = Column(String)
-    content_id = Column(Integer, ForeignKey('content.id'))  # Add ForeignKey to link with Content
-    content = relationship("Content", back_populates="metadata_items")  # Renamed from 'metadata'
+    content_id = Column(Integer, ForeignKey('content.id'))
+    content = relationship("Content", back_populates="metadata_items")
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
 
@@ -64,6 +67,7 @@ class Content(Base):
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, index=True)
     body = Column(Text)
+    published = Column(Boolean, default=False)  
     category_id = Column(Integer, ForeignKey('categories.id'))  # Corrected table name
     tags = relationship("Tag", secondary="content_tags", back_populates="contents")
     metadata_items = relationship("MetaDataItem", back_populates="content")  # Renamed from 'metadata'
@@ -71,7 +75,7 @@ class Content(Base):
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
 
     def __repr__(self):
-        return f"<Content(id={self.id}, title={self.title}, body={self.body}, category_id={self.category_id})>"
+        return f"<Content(id={self.id}, title={self.title}, body={self.body}, category_id={self.category_id}, published={self.published})>"
 
 class Category(Base):
     """
@@ -96,6 +100,7 @@ class Tag(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, unique=True, index=True)
+    description = Column(String, nullable=True) 
     contents = relationship("Content", secondary="content_tags", back_populates="tags")
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())

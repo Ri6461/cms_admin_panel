@@ -6,7 +6,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from app import crud, models, schemas
 from app.database import get_db
-from app.utils import get_password_hash, verify_password
+from app.utils import get_password_hash, verify_password, create_access_token
 import os
 from dotenv import load_dotenv
 
@@ -17,14 +17,15 @@ SECRET_KEY = os.getenv("APP_SECRET_KEY")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 100
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/token")
+# Define the OAuth2PasswordBearer instance with the token URL
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/auth/token")
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(minutes=15)
+        expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
@@ -53,18 +54,13 @@ def get_current_active_user(current_user: models.User = Depends(get_current_user
         raise HTTPException(status_code=400, detail="Inactive user")
     return current_user
 
-def get_current_active_admin(current_user: models.User = Depends(get_current_user)):
-    if not current_user.is_active:
-        raise HTTPException(status_code=400, detail="Inactive user")
-    if not current_user.is_admin:
-        raise HTTPException(status_code=403, detail="Not enough permissions")
-    return current_user
-
-def get_current_active_user_with_role(role: str):
-    def role_checker(current_user: models.User = Depends(get_current_user)):
-        if not current_user.is_active:
-            raise HTTPException(status_code=400, detail="Inactive user")
-        if current_user.role.name != role:
-            raise HTTPException(status_code=403, detail="You don't have permissions to access this resource")
+def get_current_active_user_with_role(*roles: str):
+    def role_checker(current_user: models.User = Depends(get_current_active_user)):
+        if current_user.role is None or current_user.role.name not in roles:
+            raise HTTPException(status_code=403, detail="Not enough permissions")
         return current_user
     return role_checker
+
+def check_permissions(current_user: models.User, resource: str, action: str):
+    if current_user.role is None or resource not in current_user.role.permissions or action not in current_user.role.permissions[resource]:
+        raise HTTPException(status_code=403, detail="Not enough permissions")

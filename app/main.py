@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app import models
 from app.database import engine
-from app.routes import content, metadata, tags, users, role, auth_routes
+from app.routes import content, metadata, tags, users, role, auth_routes, category, post
 
 # Create database tables if they don't exist already
 models.Base.metadata.create_all(bind=engine)
@@ -25,7 +25,6 @@ origins = [
     "http://localhost",
     "http://localhost:8000",
     "http://127.0.0.1:8000",
-   
 ]
 
 app.add_middleware(
@@ -43,6 +42,8 @@ app.include_router(metadata.router, prefix="/api/metadata", tags=["Metadata"])
 app.include_router(tags.router, prefix="/api/tags", tags=["Tags"])
 app.include_router(role.router, prefix="/api/roles", tags=["Roles"])
 app.include_router(auth_routes.router, prefix="/api/auth", tags=["Auth"])
+app.include_router(category.router, prefix="/api/categories", tags=["Categories"])
+app.include_router(post.router, prefix="/api/posts", tags=["Posts"])
 
 @app.get("/", summary="Root Endpoint", description="Welcome to the CMS Admin Panel API.")
 def read_root():

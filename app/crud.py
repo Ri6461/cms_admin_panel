@@ -164,3 +164,57 @@ def delete_metadata_item(db: Session, metadata_item_id: int):
         db.delete(db_metadata_item)
         db.commit()
     return db_metadata_item
+
+def get_categories(db: Session, skip: int = 0, limit: int = 10):
+    return db.query(models.Category).offset(skip).limit(limit).all()
+
+def create_category(db: Session, category: schemas.CategoryCreate):
+    db_category = models.Category(**category.dict())
+    db.add(db_category)
+    db.commit()
+    db.refresh(db_category)
+    return db_category
+
+def update_category(db: Session, category_id: int, category_update: schemas.CategoryUpdate):
+    db_category = db.query(models.Category).filter(models.Category.id == category_id).first()
+    if db_category:
+        db_category.name = category_update.name
+        db_category.description = category_update.description
+        db.commit()
+        db.refresh(db_category)
+    return db_category
+
+def delete_category(db: Session, category_id: int):
+    db_category = db.query(models.Category).filter(models.Category.id == category_id).first()
+    if db_category:
+        db.delete(db_category)
+        db.commit()
+    return db_category
+
+def get_posts(db: Session, skip: int = 0, limit: int = 10):
+    return db.query(models.Post).offset(skip).limit(limit).all()
+
+def create_post(db: Session, post: schemas.PostCreate):
+    db_post = models.Post(**post.dict())
+    db.add(db_post)
+    db.commit()
+    db.refresh(db_post)
+    return db_post
+
+def update_post(db: Session, post_id: int, post_update: schemas.PostUpdate):
+    db_post = db.query(models.Post).filter(models.Post.id == post_id).first()
+    if db_post:
+        db_post.title = post_update.title
+        db_post.body = post_update.body
+        db_post.published = post_update.published
+        db_post.category_id = post_update.category_id
+        db.commit()
+        db.refresh(db_post)
+    return db_post
+
+def delete_post(db: Session, post_id: int):
+    db_post = db.query(models.Post).filter(models.Post.id == post_id).first()
+    if db_post:
+        db.delete(db_post)
+        db.commit()
+    return db_post

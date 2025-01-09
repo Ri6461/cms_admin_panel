@@ -115,4 +115,24 @@ class ContentTags(Base):
     __tablename__ = "content_tags"
 
     content_id = Column(Integer, ForeignKey('content.id'), primary_key=True)
-    tag_id = Column(Integer, ForeignKey('tags.id'), primary_key=True)  # Corrected table name
+    tag_id = Column(Integer, ForeignKey('tags.id'), primary_key=True)
+
+class Post(Base):
+    """
+    Post model representing blog posts or articles.
+    """
+    __tablename__ = "posts"
+
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String, index=True)
+    body = Column(Text)
+    published = Column(Boolean, default=False)
+    category_id = Column(Integer, ForeignKey('categories.id'))
+    category = relationship("Category", back_populates="posts")
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+
+    def __repr__(self):
+        return f"<Post(id={self.id}, title={self.title}, body={self.body}, category_id={self.category_id}, published={self.published})>"
+
+Category.posts = relationship("Post", order_by=Post.id, back_populates="category")

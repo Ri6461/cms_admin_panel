@@ -118,3 +118,21 @@ class TagResponse(TagBase):
 
     class Config:
         orm_mode = True
+
+class PostBase(BaseModel):
+    title: str
+    body: str
+    published: Optional[bool] = None
+    category_id: int
+
+class PostCreate(PostBase):
+    pass
+
+class PostUpdate(PostBase):
+    pass
+
+class PostResponse(PostBase):
+    id: int
+
+    class Config:
+        orm_mode = True

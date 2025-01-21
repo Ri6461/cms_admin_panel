@@ -6,13 +6,6 @@ from app.auth import get_current_active_user_with_role, check_permissions
 
 router = APIRouter()
 
-@router.post("/register", response_model=schemas.UserResponse, summary="Register a new user", description="Register a new user with the provided details.")
-def register_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
-    db_user = crud.get_user_by_email(db, email=user.email)
-    if db_user:
-        raise HTTPException(status_code=400, detail="Email already registered")
-    return crud.create_user(db, user)
-
 @router.get("/", response_model=list[schemas.UserResponse], summary="Get list of users", description="Retrieve a list of users with pagination.")
 def read_users(skip: int = 0, limit: int = 10, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user_with_role("Admin", "Super Admin"))):
     check_permissions(current_user, "users", "read")

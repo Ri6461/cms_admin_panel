@@ -42,8 +42,9 @@ def update_user(db: Session, user_id: int, user_update: schemas.UserUpdate):
         if user_update.password:
             db_user.hashed_password = get_password_hash(user_update.password)
         db_user.is_active = user_update.is_active
-        db_user.is_admin = user_update.is_admin
         db_user.role_id = user_update.role_id
+        db_user.bio = user_update.bio  # Update bio
+        db_user.profile_picture = user_update.profile_picture  # Update profile picture
         db.commit()
         db.refresh(db_user)
     return db_user
@@ -218,3 +219,61 @@ def delete_post(db: Session, post_id: int):
         db.delete(db_post)
         db.commit()
     return db_post
+
+def get_comments(db: Session, skip: int = 0, limit: int = 10):
+    return db.query(models.Comment).offset(skip).limit(limit).all()
+
+def create_comment(db: Session, comment: schemas.CommentCreate):
+    db_comment = models.Comment(**comment.dict())
+    db.add(db_comment)
+    db.commit()
+    db.refresh(db_comment)
+    return db_comment
+
+def update_comment(db: Session, comment_id: int, comment_update: schemas.CommentUpdate):
+    db_comment = db.query(models.Comment).filter(models.Comment.id == comment_id).first()
+    if db_comment:
+        db_comment.content = comment_update.content
+        db_comment.post_id = comment_update.post_id
+        db_comment.user_id = comment_update.user_id
+        db.commit()
+        db.refresh(db_comment)
+    return db_comment
+
+def delete_comment(db: Session, comment_id: int):
+    db_comment = db.query(models.Comment).filter(models.Comment.id == comment_id).first()
+    if db_comment:
+        db.delete(db_comment)
+        db.commit()
+    return db_comment
+
+def search_posts(db: Session, query: str, skip: int = 0, limit: int = 10):
+    return db.query(models.Post).filter(models.Post.title.ilike(f"%{query}%") | models.Post.body.ilike(f"%{query}%")).offset(skip).limit(limit).all()
+
+def search_content(db: Session, query: str, skip: int = 0, limit: int = 10):
+    return db.query(models.Content).filter(models.Content.title.ilike(f"%{query}%") | models.Content.body.ilike(f"%{query}%")).offset(skip).limit(limit).all()
+
+def get_notifications(db: Session, user_id: int, skip: int = 0, limit: int = 10):
+    return db.query(models.Notification).filter(models.Notification.user_id == user_id).offset(skip).limit(limit).all()
+
+def create_notification(db: Session, notification: schemas.NotificationCreate):
+    db_notification = models.Notification(**notification.dict())
+    db.add(db_notification)
+    db.commit()
+    db.refresh(db_notification)
+    return db_notification
+
+def update_notification(db: Session, notification_id: int, notification_update: schemas.NotificationUpdate):
+    db_notification = db.query(models.Notification).filter(models.Notification.id == notification_id).first()
+    if db_notification:
+        db_notification.read = notification_update.read
+        db.commit()
+        db.refresh(db_notification)
+    return db_notification
+
+def delete_notification(db: Session, notification_id: int):
+    db_notification = db.query(models.Notification).filter(models.Notification.id == notification_id).first()
+    if db_notification:
+        db.delete(db_notification)
+        db.commit()
+    return db_notification

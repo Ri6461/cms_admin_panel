@@ -11,6 +11,11 @@ def read_content(skip: int = 0, limit: int = 10, db: Session = Depends(get_db), 
     check_permissions(current_user, "content", "read")
     return crud.get_content(db, skip=skip, limit=limit)
 
+@router.get("/search", response_model=list[schemas.ContentResponse], summary="Search content", description="Search content by title or body.")
+def search_content(query: str, skip: int = 0, limit: int = 10, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user_with_role("Admin", "Super Admin"))):
+    check_permissions(current_user, "content", "read")
+    return crud.search_content(db, query, skip=skip, limit=limit)
+
 @router.post("/", response_model=schemas.ContentResponse, summary="Create new content", description="Create new content with the provided details.")
 def create_content(content: schemas.ContentCreate, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user_with_role("Admin", "Super Admin"))):
     check_permissions(current_user, "content", "create")

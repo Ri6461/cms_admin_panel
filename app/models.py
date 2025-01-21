@@ -31,12 +31,17 @@ class User(Base):
     email = Column(String, unique=True, index=True)
     hashed_password = Column(String)
     is_active = Column(Boolean, default=True)
+    bio = Column(Text, nullable=True)  # New field for user bio
+    profile_picture = Column(String, nullable=True)  # New field for profile picture URL
 
     role_id = Column(Integer, ForeignKey('roles.id'))
     role = relationship("Role", back_populates="users")
 
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+
+    comments = relationship("Comment", order_by="Comment.id", back_populates="user")
+    notifications = relationship("Notification", order_by="Notification.id", back_populates="user")
 
     def __repr__(self):
         return f"<User(id={self.id}, name={self.name}, email={self.email}, role={self.role.name}, is_active={self.is_active})>"
@@ -132,7 +137,47 @@ class Post(Base):
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
 
+    comments = relationship("Comment", order_by="Comment.id", back_populates="post")
+
     def __repr__(self):
         return f"<Post(id={self.id}, title={self.title}, body={self.body}, category_id={self.category_id}, published={self.published})>"
 
 Category.posts = relationship("Post", order_by=Post.id, back_populates="category")
+
+class Comment(Base):
+    """
+    Comment model representing comments on posts.
+    """
+    __tablename__ = "comments"
+
+    id = Column(Integer, primary_key=True, index=True)
+    content = Column(Text, nullable=False)
+    post_id = Column(Integer, ForeignKey('posts.id'), nullable=False)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+
+    post = relationship("Post", back_populates="comments")
+    user = relationship("User", back_populates="comments")
+
+    def __repr__(self):
+        return f"<Comment(id={self.id}, content={self.content}, post_id={self.post_id}, user_id={self.user_id})>"
+
+Post.comments = relationship("Comment", order_by=Comment.id, back_populates="post")
+User.comments = relationship("Comment", order_by=Comment.id, back_populates="user")
+
+class Notification(Base):
+    """
+    Notification model representing notifications for users.
+    """
+    __tablename__ = "notifications"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    message = Column(String, nullable=False)
+    read = Column(Boolean, default=False)
+    created_at = Column(DateTime, server_default=func.now())
+
+    user = relationship("User", back_populates="notifications")
+
+User.notifications = relationship("Notification", order_by=Notification.id, back_populates="user")

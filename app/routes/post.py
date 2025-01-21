@@ -11,6 +11,11 @@ def read_posts(skip: int = 0, limit: int = 10, db: Session = Depends(get_db), cu
     check_permissions(current_user, "posts", "read")
     return crud.get_posts(db, skip=skip, limit=limit)
 
+@router.get("/search", response_model=list[schemas.PostResponse], summary="Search posts", description="Search posts by title or body.")
+def search_posts(query: str, skip: int = 0, limit: int = 10, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user_with_role("Admin", "Super Admin"))):
+    check_permissions(current_user, "posts", "read")
+    return crud.search_posts(db, query, skip=skip, limit=limit)
+
 @router.post("/", response_model=schemas.PostResponse, summary="Create a new post", description="Create a new post with the provided details.")
 def create_post(post: schemas.PostCreate, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user_with_role("Admin", "Super Admin"))):
     check_permissions(current_user, "posts", "create")
